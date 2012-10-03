@@ -17,19 +17,15 @@ public class Pokerhands
         Deck d = new Deck();
         d.shuffle();
         
-        List<Card> hand1 = new ArrayList<>();
-        List<Card> hand2 = new ArrayList<>();
-        List<Card> community = new ArrayList<>();
-        
         //deal two hands
-        hand1.add(d.drawCard());
-        hand2.add(d.drawCard());
-        hand1.add(d.drawCard());
-        hand2.add(d.drawCard());
-
+        Hand player1 = new Hand(d.drawCard());
+        Hand player2 = new Hand(d.drawCard());
+        player1.add(d.drawCard());
+        player2.add(d.drawCard());
+        
         //deal the flop
         d.drawCard();
-        community.addAll(d.drawCards(3));
+        Hand community = new Hand(d.drawCards(3));
         
         //deal the river
         d.drawCard();
@@ -41,24 +37,22 @@ public class Pokerhands
         
         
         System.out.println("Player 1:");
-        for(Card c: hand1)
-        {
-            System.out.println(c.toString());
-        }
-        System.out.println();
+        System.out.println(player1.toString());
         
         System.out.println("Player 2:");
-        for(Card c: hand2)
-        {
-            System.out.println(c.toString());
-        }
-        System.out.println();
+        System.out.println(player2.toString());
         
         System.out.println("Community:");
-        for(Card c: community)
+        System.out.println(community.toString());
+        
+        if (Hand.isPair(new Hand(player1, community)))
         {
-            System.out.println(c.toString());
+            System.out.println("Player1 has a pair");
         }
-        System.out.println();
+        
+        if (Hand.isPair(new Hand(player2, community)))
+        {
+            System.out.println("Player2 has a pair");
+        }
     }
 }

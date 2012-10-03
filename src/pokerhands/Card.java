@@ -4,7 +4,7 @@ package pokerhands;
  *
  * @author jfritz
  */
-public class Card 
+public class Card implements Comparable<Card>
 {
     public static enum SUIT
     {
@@ -39,6 +39,23 @@ public class Card
     public SUIT getSuit()
     {
         return this.suit;
+    }
+    
+    @Override
+    public int compareTo(Card t) 
+    {
+        if (this.rank < t.getRank())
+        {
+            return -1;
+        }
+        else if (this.rank == t.getRank())
+        {
+            return 0;
+        }
+        else
+        {
+            return 1;
+        }
     }
     
     @Override
