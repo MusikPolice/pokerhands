@@ -15,6 +15,10 @@ public class Deck
     
     private int index = 0;
     
+    /**
+     * Creates a new Deck of cards.
+     * A deck contains 52 total cards; 13 of each of the four suits.
+     */
     public Deck()
     {
         for (SUIT s : Card.SUIT.values())

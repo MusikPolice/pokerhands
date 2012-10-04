@@ -45,12 +45,14 @@ public class Pokerhands
         System.out.println("Community:");
         System.out.println(community.toString());
         
-        if (Hand.isPair(new Hand(player1, community)))
+        Hand p1AllCards = new Hand(player1, community);
+        if (p1AllCards.hasOnePair())
         {
             System.out.println("Player1 has a pair");
         }
         
-        if (Hand.isPair(new Hand(player2, community)))
+        Hand p2AllCards = new Hand(player2, community);
+        if (p2AllCards.hasOnePair())
         {
             System.out.println("Player2 has a pair");
         }

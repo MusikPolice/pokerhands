@@ -16,7 +16,7 @@ public class Card implements Comparable<Card>
     
     /**
      * 1 is an ace
-     * 14 is an ace
+     * 13 is a king
      */
     private int rank;
     
@@ -24,7 +24,7 @@ public class Card implements Comparable<Card>
     
     public Card(int rank, SUIT suit)
     {
-        if (rank > 0 && rank < 15)
+        if (rank > 0 && rank < 14)
         {
             this.rank = rank;
         }
@@ -76,9 +76,6 @@ public class Card implements Comparable<Card>
                 break;
             case 13:
                 sb.append("KING");
-                break;
-            case 14:
-                sb.append("ACE");
                 break;
             default:
                 sb.append(rank);
