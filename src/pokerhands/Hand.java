@@ -169,7 +169,7 @@ public class Hand implements Iterable<Card>
         //if any of the ranks have two or more cards, then there is one pair.
         for (int r = 1; r < 14; r++)
         {
-            if (rankCount.get(r) >= 2) return true;
+            if (rankCount.get(r) != null && rankCount.get(r) >= 2) return true;
         }
         
         return false;
@@ -195,19 +195,24 @@ public class Hand implements Iterable<Card>
         
         int pairs = 0;
         
-        //if any of the ranks have four or more cards, then there is a four of
-        //a kind in the hand.
+        //if any of the ranks have two or more cards, then there is a pair in the hand.
         for (int r = 1; r < 14; r++)
         {
-            if (rankCount.get(r) >= 2)
+            if (rankCount.get(r) != null && rankCount.get(r)  >= 2)
             {
                 pairs++;
             }
         }
         
-        return pairs > 0;
+        return pairs >= 2;
     }
     
+    /**
+     * Returns true if the hand contains three of a kind.
+     * Three of a kind is defined as three cards with the same rank. Suit is not
+     * considered for this comparison.
+     * @return true if the hand contains three of a kind.
+     */
     public boolean hasThreeOfAKind()
     {
         if (cards.size() < 5) return false;
@@ -226,7 +231,7 @@ public class Hand implements Iterable<Card>
         //of a kind in the hand.
         for (int r = 1; r < 14; r++)
         {
-            if (rankCount.get(r) >= 3) return true;
+            if (rankCount.get(r) != null && rankCount.get(r) >= 3) return true;
         }
         
         return false;
@@ -263,7 +268,7 @@ public class Hand implements Iterable<Card>
             suitCount.put(c.getSuit(), count + 1);
         }
         
-        //if any of the suits have more than four cards, then there is a flush 
+        //if any of the suits have more than five cards, then there is a flush 
         //of that suit in the hand.
         for (Card.SUIT s : suitCount.keySet())
         {
@@ -300,11 +305,11 @@ public class Hand implements Iterable<Card>
         //a kind in the hand.
         for (int r = 1; r < 14; r++)
         {
-            if (rankCount.get(r) == 2)
+            if (rankCount.get(r) != null && rankCount.get(r) == 2)
             {
                 pairRank = r;
             }
-            else if (rankCount.get(r) == 3)
+            else if (rankCount.get(r) != null && rankCount.get(r) == 3)
             {
                 tripsRank = r;
             }
@@ -337,7 +342,7 @@ public class Hand implements Iterable<Card>
         //a kind in the hand.
         for (int r = 1; r < 14; r++)
         {
-            if (rankCount.get(r) >= 4) return true;
+            if (rankCount.get(r) != null && rankCount.get(r) >= 4) return true;
         }
         
         return false;
@@ -390,7 +395,7 @@ public class Hand implements Iterable<Card>
      * Assumes that h has been sorted from lowest rank to highest, regardless of suit
      * @param h the hand to search for a straight
      * @return the highest straight in h, or null if no straight could be found
-     */
+     *
     private Hand getHighestStraight()
     {
         List<Hand> straights = getStraights();
@@ -404,6 +409,7 @@ public class Hand implements Iterable<Card>
             return null;
         }
     }
+    */
     
     /**
      * Returns a list of all sub-hands of this hand that constitute a five 
@@ -431,21 +437,6 @@ public class Hand implements Iterable<Card>
                     //the previous card, it is part of the straight
                     straight.add(c);
                 }
-                else if (c == cards.get(cards.size() - 1))
-                {
-                    //if the highest card in the hand is a king
-                    if (c.getRank() == 13)
-                    {
-                        //and the lowest card is an ace
-                        if (cards.get(0).getRank() == 1)
-                        {
-                            //then the both the king and the ace count 
-                            //towards the straight
-                            straight.add(c);
-                            straight.add(cards.get(0));
-                        }
-                    }
-                }
                 else
                 {
                     //the straight was broken. split it into five card runs
@@ -455,6 +446,21 @@ public class Hand implements Iterable<Card>
                     //start fresh with just the current card
                     straight = new ArrayList<>();
                     straight.add(c);
+                }
+                
+                if (c == cards.get(cards.size() - 1))
+                {
+                    //if the highest card in the hand is a king
+                    if (c.getRank() == 13)
+                    {
+                        //and the lowest card is an ace
+                        if (cards.get(0).getRank() == 1)
+                        {
+                            //then the both the king and the ace count 
+                            //towards the straight
+                            straight.add(cards.get(0));
+                        }
+                    }
                 }
             }
             else

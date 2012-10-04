@@ -1,8 +1,5 @@
 package pokerhands;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  *
  * @author jfritz
@@ -46,15 +43,89 @@ public class Pokerhands
         System.out.println(community.toString());
         
         Hand p1AllCards = new Hand(player1, community);
-        if (p1AllCards.hasOnePair())
-        {
-            System.out.println("Player1 has a pair");
-        }
+        System.out.print("Player one has a ");
+        int p1Score = scoreHand(p1AllCards);
+        System.out.println();
         
         Hand p2AllCards = new Hand(player2, community);
-        if (p2AllCards.hasOnePair())
+        System.out.print("Player two has a ");
+        int p2Score = scoreHand(p2AllCards);
+        System.out.println();
+        
+        if (p1Score > p2Score)
         {
-            System.out.println("Player2 has a pair");
+            System.out.println("Player 1 Wins!");
+        }
+        else if (p1Score < p2Score)
+        {
+            System.out.println("Player 2 Wins!");
+        }
+        else
+        {
+            System.out.println("Temporary tie");
+        }
+    }
+    
+    /**
+     * Checks the contents of the specified hand for winning combinations.
+     * Returns an integer between 0 and 9 (inclusive) that indicates the score
+     * of the hand, where 0 is high card and 9 is royal flush.
+     * This is the first step of determining the winning hand. If two hands have
+     * the same score, then they need to be compared in more detail.
+     * @param h the hand to score
+     * @return the score of the hand, an integer from 0 to 9
+     */
+    private static int scoreHand(Hand h)
+    {
+        if (h.hasRoyalFlush())
+        {
+            System.out.print("Royal Flush");
+            return 9;
+        }
+        else if (h.hasStraightFlush())
+        {
+            System.out.print("Straight Flush");
+            return 8;
+        }
+        else if (h.hasFourOfAKind())
+        {
+            System.out.print("Four of a Kind");
+            return 7;
+        }
+        else if (h.hasFullHouse())
+        {
+            System.out.print("Full House");
+            return 6;
+        }
+        else if (h.hasFlush())
+        {
+            System.out.print("Flush");
+            return 5;
+        }
+        else if (h.hasStraight())
+        {
+            System.out.print("Straight");
+            return 4;
+        }
+        else if (h.hasThreeOfAKind())
+        {
+            System.out.print("Three of a Kind");
+            return 3;
+        }
+        else if (h.hasTwoPair())
+        {
+            System.out.print("Two Pair");
+            return 2;
+        }
+        else if (h.hasOnePair())
+        {
+            System.out.print("One Pair");
+            return 1;
+        }
+        else
+        {
+            System.out.print("High Card");
+            return 0;
         }
     }
 }
