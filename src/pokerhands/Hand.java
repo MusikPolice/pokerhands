@@ -63,6 +63,18 @@ public class Hand implements Iterable<Card>
     }
     
     /**
+     * Adds the specified cards to the hand.
+     * @param cards 
+     */
+    public void addAll(List<Card> cards)
+    {
+        for (Card c : cards)
+        {
+            this.add(c);
+        }
+    }
+    
+    /**
      * Returns the card at the specified index in the hand.
      * This operation does not remove the card from the hand.
      * @param index
@@ -143,7 +155,47 @@ public class Hand implements Iterable<Card>
      */
     public boolean hasHighCard()
     {
-        return !cards.isEmpty();
+        return getHighCardHand() != null;
+    }
+    
+    /**
+     * Returns the five highest cards in the current hand.
+     * @return a new hand comprised of the five highest cards in the current 
+     *         hand or null if a five card hand couldn't be assembled.
+     */
+    public Hand getHighCardHand()
+    {
+        Hand h = new Hand();
+        
+        //aces are high, so start by adding all aces to the hand
+        for (Card c : cards)
+        {
+            if (c.getRank() == 1)
+            {
+                h.add(c);
+            }
+            else
+            {
+                break;
+            }
+        }
+        
+        //no count backward so that highest cards are added first
+        for (int i = cards.size() - 1; i != 0; i--)
+        {
+            //stop if we have five cards in our hand
+            if (h.getNumCards() == 5) break;
+            
+            //stop if we find an ace, because they have already been handled
+            if (cards.get(i).getRank() == 1) break;
+            
+            //otherwise, add the card to the hand
+            h.add(cards.get(i));
+        }
+     
+        //return null if we don't have a five card hand
+        if (h.getNumCards() != 5) return null;
+        return h;
     }
     
     /**
@@ -154,25 +206,91 @@ public class Hand implements Iterable<Card>
      */
     public boolean hasOnePair()
     {
-        if (cards.size() < 5) return false;
+        return getOnePairHand() != null;
+    }
+    
+    /**
+     * Returns a five-card hand that contains at least one high pair,
+     * padded by other high cards.
+     * @return 
+     */
+    public Hand getOnePairHand()
+    {
+        if (cards.size() < 5) return null;
         
-        //map each rank to the number of cards of that rank in the hand
-        HashMap<Integer, Integer> rankCount = new HashMap<>();
+        //map each rank to the cards of that rank
+        HashMap<Integer, List<Card>> rankBuckets = new HashMap<>();
         
-        //count the number of instances of each suit
+        //sort the cards into buckets based on rank
         for (Card c : cards)
         {
-            int count = rankCount.containsKey(c.getRank()) ? rankCount.get(c.getRank()) : 0;
-            rankCount.put(c.getRank(), count + 1);
+            List<Card> rank = new ArrayList<>();
+            if (rankBuckets.containsKey(c.getRank()))
+            {
+                rank.addAll(rankBuckets.get(c.getRank()));
+            }
+            rank.add(c);
+            rankBuckets.put(c.getRank(), rank);
         }
         
-        //if any of the ranks have two or more cards, then there is one pair.
-        for (int r = 1; r < 14; r++)
+        Hand h = new Hand();
+        
+        //aces are high, so if a pair exists, add it first
+        if (rankBuckets.get(1) != null && rankBuckets.get(1).size() >= 2)
         {
-            if (rankCount.get(r) != null && rankCount.get(r) >= 2) return true;
+            //take a pair of aces
+            for (int i = 0; i < 2; i++)
+            {
+                h.add(rankBuckets.get(1).remove(0));
+            }
+            if (rankBuckets.get(1).isEmpty()) rankBuckets.remove(1);
         }
         
-        return false;
+        //if we didn't get at least one pair of aces, take the next highest
+        //pair of cards
+        if (h.getNumCards() < 2)
+        {
+            for (int r = 13; r > 1; r--)
+            {
+                if (rankBuckets.get(r) != null && rankBuckets.get(r).size() >= 2)
+                {
+                    for (int i = 0; i < 2; i++)
+                    {
+                        h.add(rankBuckets.get(r).remove(0));
+                    }
+                    if (rankBuckets.get(r).isEmpty()) rankBuckets.remove(r);
+                    break;
+                }
+            }
+        }
+        
+        //if we still didn't get a pair, we aren't going to get one
+        if (h.getNumCards() < 2) return null;
+        
+        //now pad the hand with high cards - aces first
+        if (rankBuckets.get(1) != null)
+        {
+            for (Card c : rankBuckets.get(1))
+            {
+                if (h.getNumCards() == 5) break;
+                h.add(c);
+            }
+        }
+        for (int r = 13; r > 1; r--)
+        {
+            if (rankBuckets.get(r) != null)
+            {
+                for (Card c : rankBuckets.get(r))
+                {
+                    if (h.getNumCards() == 5) break;
+                    h.add(c);
+                }
+            }
+        }
+        
+        //return null if we couldn't build a valid hand
+        if (h.getNumCards() != 5) return null;
+        return h;
     }
     
     /**
@@ -181,30 +299,100 @@ public class Hand implements Iterable<Card>
      */
     public boolean hasTwoPair()
     {
-        if (cards.size() < 5) return false;
+        return getTwoPairHand() != null;
+    }
+    
+    public Hand getTwoPairHand()
+    {
+        if (cards.size() < 5) return null;
         
-        //map each rank to the number of cards of that rank in the hand
-        HashMap<Integer, Integer> rankCount = new HashMap<>();
+        //map each rank to the cards of that rank
+        HashMap<Integer, List<Card>> rankBuckets = new HashMap<>();
         
-        //count the number of instances of each suit
+        //sort the cards into buckets based on rank
         for (Card c : cards)
         {
-            int count = rankCount.containsKey(c.getRank()) ? rankCount.get(c.getRank()) : 0;
-            rankCount.put(c.getRank(), count + 1);
+            List<Card> rank = new ArrayList<>();
+            if (rankBuckets.containsKey(c.getRank()))
+            {
+                rank.addAll(rankBuckets.get(c.getRank()));
+            }
+            rank.add(c);
+            rankBuckets.put(c.getRank(), rank);
         }
         
+        Hand h = new Hand();
         int pairs = 0;
         
-        //if any of the ranks have two or more cards, then there is a pair in the hand.
-        for (int r = 1; r < 14; r++)
+        //aces are high, so if at least one pair exists, add them first
+        if (rankBuckets.get(1) != null)
         {
-            if (rankCount.get(r) != null && rankCount.get(r)  >= 2)
+            if (rankBuckets.get(1).size() >= 4)
             {
-                pairs++;
+                //two pair of aces
+                for (int i = 0; i < 4; i++)
+                {
+                    h.add(rankBuckets.get(1).remove(0));
+                }
+                pairs = 2;
+            }
+            else if (rankBuckets.get(1).size() >= 2)
+            {
+                //one pair of aces
+                for (int i = 0; i < 2; i++)
+                {
+                    h.add(rankBuckets.get(1).remove(0));
+                }
+                pairs = 1;
+            }
+            if (rankBuckets.get(1).isEmpty()) rankBuckets.remove(1);
+        }
+        
+        //if we didn't get two pairs of aces, take the next highest pair
+        if (pairs < 2)
+        {
+            for (int r = 13; r > 1; r--)
+            {
+                if (rankBuckets.get(r) != null && rankBuckets.get(r).size() >= 2)
+                {
+                    for (int i = 0; i < 2; i++)
+                    {
+                        h.add(rankBuckets.get(r).remove(0));
+                    }
+                    if (rankBuckets.get(r).isEmpty()) rankBuckets.remove(r);
+                    pairs++;
+                    break;
+                }
             }
         }
         
-        return pairs >= 2;
+        //if we still didn't get two pairs, we aren't going to
+        if (pairs < 2) return null;
+        
+        //now pad the hand with high cards - aces first
+        if (rankBuckets.get(1) != null)
+        {
+            for (Card c : rankBuckets.get(1))
+            {
+                if (h.getNumCards() == 5) break;
+                h.add(c);
+            }
+        }
+        for (int r = 13; r > 1; r--)
+        {
+            if (rankBuckets.get(r) != null)
+            {
+                for (Card c : rankBuckets.get(r))
+                {
+                    if (h.getNumCards() == 5) break;
+                    h.add(c);
+                }
+            }
+        }
+        
+        //return null if we couldn't build a valid hand
+        if (h.getNumCards() != 5) return null;
+        return h;
     }
     
     /**
@@ -215,26 +403,90 @@ public class Hand implements Iterable<Card>
      */
     public boolean hasThreeOfAKind()
     {
-        if (cards.size() < 5) return false;
+        return getThreeOfAKindHand() != null;
+    }
+    
+    public Hand getThreeOfAKindHand()
+    {
+        if (cards.size() < 5) return null;
         
-        //map each rank to the number of cards of that rank in the hand
-        HashMap<Integer, Integer> rankCount = new HashMap<>();
+        //map each rank to the cards of that rank
+        HashMap<Integer, List<Card>> rankBuckets = new HashMap<>();
         
-        //count the number of instances of each suit
+        //sort the cards into buckets based on rank
         for (Card c : cards)
         {
-            int count = rankCount.containsKey(c.getRank()) ? rankCount.get(c.getRank()) : 0;
-            rankCount.put(c.getRank(), count + 1);
+            List<Card> rank = new ArrayList<>();
+            if (rankBuckets.containsKey(c.getRank()))
+            {
+                rank.addAll(rankBuckets.get(c.getRank()));
+            }
+            rank.add(c);
+            rankBuckets.put(c.getRank(), rank);
         }
         
-        //if any of the ranks have three or more cards, then there is three
-        //of a kind in the hand.
-        for (int r = 1; r < 14; r++)
+        Hand h = new Hand();
+        boolean three = false;
+        
+        //aces are high, try to find three aces first
+        if (rankBuckets.get(1) != null)
         {
-            if (rankCount.get(r) != null && rankCount.get(r) >= 3) return true;
+            if (rankBuckets.get(1).size() >= 3)
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    h.add(rankBuckets.get(1).remove(0));
+                }
+                three = true;
+            }
+            if (rankBuckets.get(1).isEmpty()) rankBuckets.remove(1);
         }
         
-        return false;
+        //didn't have three aces? try the next highest cards
+        if (!three)
+        {
+            for (int r = 13; r > 1; r--)
+            {
+                if (rankBuckets.get(r) != null && rankBuckets.get(r).size() >= 3)
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        h.add(rankBuckets.get(r).remove(0));
+                    }
+                    if (rankBuckets.get(r).isEmpty()) rankBuckets.remove(r);
+                    three = true;
+                    break;
+                }
+            }
+        }
+        
+        //if we still didn't get our three of a kind, dump out
+        if (!three) return null;
+        
+        //now pad the hand with high cards - aces first
+        if (rankBuckets.get(1) != null)
+        {
+            for (Card c : rankBuckets.get(1))
+            {
+                if (h.getNumCards() == 5) break;
+                h.add(c);
+            }
+        }
+        for (int r = 13; r > 1; r--)
+        {
+            if (rankBuckets.get(r) != null)
+            {
+                for (Card c : rankBuckets.get(r))
+                {
+                    if (h.getNumCards() == 5) break;
+                    h.add(c);
+                }
+            }
+        }
+        
+        //return null if we couldn't build a valid hand
+        if (h.getNumCards() != 5) return null;
+        return h;
     }
     
     /**
@@ -249,6 +501,22 @@ public class Hand implements Iterable<Card>
     }
     
     /**
+     * Returns the highest straight sub-hand.
+     * @return 
+     */
+    public Hand getStraightHand()
+    {
+        List<Hand> straights = getStraights();
+        if (straights != null && straights.size() > 0)
+        {
+            //return the highest valued straight that we found
+            return straights.get(straights.size() - 1);
+        }
+        
+        return null;
+    }
+    
+    /**
      * Returns true if this hand contains a flush.
      * A flush is defined as five cards that share the same suit. For this
      * particular test, rank does not matter.
@@ -256,26 +524,65 @@ public class Hand implements Iterable<Card>
      */
     public boolean hasFlush()
     {
-        if (cards.size() < 5) return false;
+        return getFlushHand() != null;
+    }
+    
+    public Hand getFlushHand()
+    {
+        if (cards.size() < 5) return null;
         
-        //map each suit to the number of cards of that suit in the hand
-        HashMap<Card.SUIT, Integer> suitCount = new HashMap<>();
+        //map each suit to the cards of that suit
+        HashMap<Card.SUIT, List<Card>> suitBuckets = new HashMap<>();
         
-        //count the number of instances of each suit
+        //sort the cards into buckets based on rank
         for (Card c : cards)
         {
-            int count = suitCount.containsKey(c.getSuit()) ? suitCount.get(c.getSuit()) : 0;
-            suitCount.put(c.getSuit(), count + 1);
+            List<Card> suit = new ArrayList<>();
+            if (suitBuckets.containsKey(c.getSuit()))
+            {
+                suit.addAll(suitBuckets.get(c.getSuit()));
+            }
+            suit.add(c);
+            suitBuckets.put(c.getSuit(), suit);
         }
         
         //if any of the suits have more than five cards, then there is a flush 
         //of that suit in the hand.
-        for (Card.SUIT s : suitCount.keySet())
+        for (Card.SUIT s : suitBuckets.keySet())
         {
-            if (suitCount.get(s) >= 5) return true;
+            if (suitBuckets.get(s).size() >= 5)
+            {
+                //return the top five cards of that suit
+                List<Card> suit = suitBuckets.get(s);
+                Collections.sort(suit);
+                
+                Hand h = new Hand();
+                for (int i = 0; i < suit.size(); i++)
+                {
+                    //take aces first because they are high
+                    if (suit.get(i).getRank() == 1)
+                    {
+                        h.add(suit.get(i));
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                for (int i = suit.size() - 1; i != 0; i--)
+                {
+                    if (h.getNumCards() == 5) break;
+                    
+                    //on this pass, ignore aces - we already dealt with them
+                    if (suit.get(i).getRank() != 1) h.add(suit.get(i));
+                }
+                
+                if (h.getNumCards() == 5) return h;
+                return null;
+            }
         }
         
-        return false;
+        return null;
     }
     
     /**
@@ -286,36 +593,102 @@ public class Hand implements Iterable<Card>
      */
     public boolean hasFullHouse()
     {
-        if (cards.size() < 5) return false;
+        return getFullHouseHand() != null;
+    }
+    
+    public Hand getFullHouseHand()
+    {
+        if (cards.size() < 5) return null;
         
-        //map each rank to the number of cards of that rank in the hand
-        HashMap<Integer, Integer> rankCount = new HashMap<>();
+        //map each rank to the cards of that rank
+        HashMap<Integer, List<Card>> rankBuckets = new HashMap<>();
         
-        //count the number of instances of each suit
+        //sort the cards into buckets based on rank
         for (Card c : cards)
         {
-            int count = rankCount.containsKey(c.getRank()) ? rankCount.get(c.getRank()) : 0;
-            rankCount.put(c.getRank(), count + 1);
+            List<Card> rank = new ArrayList<>();
+            if (rankBuckets.containsKey(c.getRank()))
+            {
+                rank.addAll(rankBuckets.get(c.getRank()));
+            }
+            rank.add(c);
+            rankBuckets.put(c.getRank(), rank);
         }
         
-        int pairRank = 0;
-        int tripsRank = 0;
+        Hand h = new Hand();
+        boolean three = false;
+        boolean pair = false;
         
-        //if any of the ranks have four or more cards, then there is a four of
-        //a kind in the hand.
-        for (int r = 1; r < 14; r++)
+        //aces are high, try to find three aces first
+        if (rankBuckets.get(1) != null)
         {
-            if (rankCount.get(r) != null && rankCount.get(r) == 2)
+            if (rankBuckets.get(1).size() >= 3)
             {
-                pairRank = r;
+                for (int i = 0; i < 3; i++)
+                {
+                    h.add(rankBuckets.get(1).remove(0));
+                }
+                three = true;
             }
-            else if (rankCount.get(r) != null && rankCount.get(r) == 3)
+            if (rankBuckets.get(1).isEmpty()) rankBuckets.remove(1);
+        }
+        
+        //didn't have three aces? try the next highest cards
+        if (!three)
+        {
+            for (int r = 13; r > 1; r--)
             {
-                tripsRank = r;
+                if (rankBuckets.get(r) != null && rankBuckets.get(r).size() >= 3)
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        h.add(rankBuckets.get(r).remove(0));
+                    }
+                    if (rankBuckets.get(r).isEmpty()) rankBuckets.remove(r);
+                    three = true;
+                    break;
+                }
             }
         }
         
-        return pairRank > 0 && tripsRank > 0;
+        //if we still didn't get our three of a kind, dump out
+        if (!three) return null;
+        
+        //aces are high, try to find two aces first
+        if (rankBuckets.get(1) != null)
+        {
+            if (rankBuckets.get(1).size() >= 2)
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    h.add(rankBuckets.get(1).remove(0));
+                }
+                pair = true;
+            }
+            if (rankBuckets.get(1).isEmpty()) rankBuckets.remove(1);
+        }
+        
+        //didn't have a pair of aces? try the next highest cards
+        if (!pair)
+        {
+            for (int r = 13; r > 1; r--)
+            {
+                if (rankBuckets.get(r) != null && rankBuckets.get(r).size() >= 2)
+                {
+                    for (int i = 0; i < 2; i++)
+                    {
+                        h.add(rankBuckets.get(r).remove(0));
+                    }
+                    if (rankBuckets.get(r).isEmpty()) rankBuckets.remove(r);
+                    pair = true;
+                    break;
+                }
+            }
+        }
+        
+        //return null if we couldn't build a valid hand
+        if (!(three && pair)) return null;
+        return h;
     }
     
     /**
@@ -326,26 +699,90 @@ public class Hand implements Iterable<Card>
      */
     public boolean hasFourOfAKind()
     {
-        if (cards.size() < 5) return false;
+        return getFourOfAKindHand() != null;
+    }
+    
+    public Hand getFourOfAKindHand()
+    {
+        if (cards.size() < 5) return null;
         
-        //map each rank to the number of cards of that rank in the hand
-        HashMap<Integer, Integer> rankCount = new HashMap<>();
+        //map each rank to the cards of that rank
+        HashMap<Integer, List<Card>> rankBuckets = new HashMap<>();
         
-        //count the number of instances of each suit
+        //sort the cards into buckets based on rank
         for (Card c : cards)
         {
-            int count = rankCount.containsKey(c.getRank()) ? rankCount.get(c.getRank()) : 0;
-            rankCount.put(c.getRank(), count + 1);
+            List<Card> rank = new ArrayList<>();
+            if (rankBuckets.containsKey(c.getRank()))
+            {
+                rank.addAll(rankBuckets.get(c.getRank()));
+            }
+            rank.add(c);
+            rankBuckets.put(c.getRank(), rank);
         }
         
-        //if any of the ranks have four or more cards, then there is a four of
-        //a kind in the hand.
-        for (int r = 1; r < 14; r++)
+        Hand h = new Hand();
+        boolean four = false;
+        
+        //aces are high, try to find four aces first
+        if (rankBuckets.get(1) != null)
         {
-            if (rankCount.get(r) != null && rankCount.get(r) >= 4) return true;
+            if (rankBuckets.get(1).size() >= 4)
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    h.add(rankBuckets.get(1).remove(0));
+                }
+                four = true;
+            }
+            if (rankBuckets.get(1).isEmpty()) rankBuckets.remove(1);
         }
         
-        return false;
+        //didn't have four aces? try the next highest cards
+        if (!four)
+        {
+            for (int r = 13; r > 1; r--)
+            {
+                if (rankBuckets.get(r) != null && rankBuckets.get(r).size() >= 4)
+                {
+                    for (int i = 0; i < 4; i++)
+                    {
+                        h.add(rankBuckets.get(r).remove(0));
+                    }
+                    if (rankBuckets.get(r).isEmpty()) rankBuckets.remove(r);
+                    four = true;
+                    break;
+                }
+            }
+        }
+        
+        //if we still didn't get our four of a kind, dump out
+        if (!four) return null;
+        
+        //now pad the hand with high cards - aces first
+        if (rankBuckets.get(1) != null)
+        {
+            for (Card c : rankBuckets.get(1))
+            {
+                if (h.getNumCards() == 5) break;
+                h.add(c);
+            }
+        }
+        for (int r = 13; r > 1; r--)
+        {
+            if (rankBuckets.get(r) != null)
+            {
+                for (Card c : rankBuckets.get(r))
+                {
+                    if (h.getNumCards() == 5) break;
+                    h.add(c);
+                }
+            }
+        }
+        
+        //return null if we couldn't build a valid hand
+        if (h.getNumCards() != 5) return null;
+        return h;
     }
     
     /**
@@ -356,12 +793,25 @@ public class Hand implements Iterable<Card>
      */
     public boolean hasStraightFlush()
     {
+        return getStraightFlushHand() != null;
+    }
+    
+    public Hand getStraightFlushHand()
+    {
+        List<Hand> flushHands = new ArrayList<>();
+        
         for (Hand h : getStraights())
         {
-            if (h.hasFlush()) return true;
+            flushHands.add(h);
         }
         
-        return false;
+        //return the largest of the flush hands
+        if (flushHands != null && flushHands.size() > 0)
+        {
+            return flushHands.get(flushHands.size() - 1);
+        }
+        
+        return null;
     }
     
     /**
@@ -372,6 +822,13 @@ public class Hand implements Iterable<Card>
      */
     public boolean hasRoyalFlush()
     {
+        return getRoyalFlushHand() != null;
+    }
+    
+    public Hand getRoyalFlushHand()
+    {
+        List<Hand> royalFlushHands = new ArrayList<>();
+        
         for (Hand h : getStraights())
         {
             //the special case for a 10,J,K,Q,A straight starts with the ace
@@ -383,33 +840,19 @@ public class Hand implements Iterable<Card>
                 h.get(3).getRank() == 12 &&
                 h.get(4).getRank() == 13)
             {
-                return true;
+                royalFlushHands.add(h);
             }
         }
         
-        return false;
+        //return the highest of the royal flush hands
+        if (royalFlushHands != null && royalFlushHands.size() > 0)
+        {
+            return royalFlushHands.get(royalFlushHands.size() - 1);
+        }
+        
+        return null;
     }
     
-    /**
-     * Finds the highest five card straight in the provided hand of cards.
-     * Assumes that h has been sorted from lowest rank to highest, regardless of suit
-     * @param h the hand to search for a straight
-     * @return the highest straight in h, or null if no straight could be found
-     *
-    private Hand getHighestStraight()
-    {
-        List<Hand> straights = getStraights();
-        
-        if (!straights.isEmpty())
-        {
-            return straights.get(straights.size() - 1);
-        }
-        else
-        {
-            return null;
-        }
-    }
-    */
     
     /**
      * Returns a list of all sub-hands of this hand that constitute a five 
