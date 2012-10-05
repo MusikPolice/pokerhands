@@ -10,6 +10,20 @@ import java.util.List;
  */
 public class RoyalFlush extends Hand
 {
+    public RoyalFlush(Hand h)
+    {
+        this.cards = h.getCards();
+        h = this.getValidHand();
+        if (h != null)
+        {
+            this.cards = h.getCards();
+        }
+        else
+        {
+            this.cards = null;
+        }    
+    }
+    
     @Override
     public Hand getValidHand()
     {
@@ -39,5 +53,11 @@ public class RoyalFlush extends Hand
         }
         
         return null;
+    }
+    
+    @Override
+    public int getScore()
+    {
+        return 10;
     }
 }

@@ -11,8 +11,22 @@ import pokerhands.Card;
  * Rank does not matter.
  * @author jfritz
  */
-public class Flush extends Hand
+public class Flush extends Hand implements Comparable<Flush>
 {
+    public Flush(Hand h)
+    {
+        this.cards = h.getCards();
+        h = this.getValidHand();
+        if (h != null)
+        {
+            this.cards = h.getCards();
+        }
+        else
+        {
+            this.cards = null;
+        }
+    }
+    
     @Override
     public Hand getValidHand()
     {
@@ -70,5 +84,25 @@ public class Flush extends Hand
         }
         
         return null;
+    }
+    
+    @Override
+    public int compareTo(Flush t) 
+    {
+        int index = this.getNumCards() - 1;
+        while (this.get(index).getRank() == t.get(index).getRank())
+        {
+            index--;
+            if (index < 0) return 0;
+        }
+        
+        if (this.get(index).getRank() < t.get(index).getRank())
+        {
+            return - 1;
+        }
+        else
+        {
+            return 1;
+        }
     }
 }

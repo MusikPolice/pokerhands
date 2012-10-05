@@ -1,6 +1,5 @@
 package pokerhands.hands;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import pokerhands.Card;
@@ -10,27 +9,32 @@ import pokerhands.Card;
  * Suit does not matter.
  * @author jfritz
  */
-public class FullHouse extends Hand
+public class FullHouse extends Hand implements Comparable<FullHouse>
 {
+    int tripRank = 0;
+    int pairRank = 0;
+    
+    public FullHouse(Hand h)
+    {
+        this.cards = h.getCards();
+        h = this.getValidHand();
+        if (h != null)
+        {
+            this.cards = h.getCards();
+        }
+        else
+        {
+            this.cards = null;
+        }
+    }
+    
     @Override
     public Hand getValidHand()
     {
         if (cards.size() < 5) return null;
         
         //map each rank to the cards of that rank
-        HashMap<Integer, List<Card>> rankBuckets = new HashMap<>();
-        
-        //sort the cards into buckets based on rank
-        for (Card c : cards)
-        {
-            List<Card> rank = new ArrayList<>();
-            if (rankBuckets.containsKey(c.getRank()))
-            {
-                rank.addAll(rankBuckets.get(c.getRank()));
-            }
-            rank.add(c);
-            rankBuckets.put(c.getRank(), rank);
-        }
+        HashMap<Integer, List<Card>> rankBuckets = bucketCardsByRank(cards);
         
         Hand h = new Hand();
         boolean three = false;
@@ -45,6 +49,7 @@ public class FullHouse extends Hand
                 {
                     h.add(rankBuckets.get(1).remove(0));
                 }
+                if (tripRank == 0) tripRank = 1;
                 three = true;
             }
             if (rankBuckets.get(1).isEmpty()) rankBuckets.remove(1);
@@ -62,6 +67,7 @@ public class FullHouse extends Hand
                         h.add(rankBuckets.get(r).remove(0));
                     }
                     if (rankBuckets.get(r).isEmpty()) rankBuckets.remove(r);
+                    if (tripRank == 0) tripRank = r;
                     three = true;
                     break;
                 }
@@ -80,6 +86,7 @@ public class FullHouse extends Hand
                 {
                     h.add(rankBuckets.get(1).remove(0));
                 }
+                if (pairRank == 0) pairRank = 1;
                 pair = true;
             }
             if (rankBuckets.get(1).isEmpty()) rankBuckets.remove(1);
@@ -97,6 +104,7 @@ public class FullHouse extends Hand
                         h.add(rankBuckets.get(r).remove(0));
                     }
                     if (rankBuckets.get(r).isEmpty()) rankBuckets.remove(r);
+                    if (pairRank == 0) pairRank = r;
                     pair = true;
                     break;
                 }
@@ -106,5 +114,43 @@ public class FullHouse extends Hand
         //return null if we couldn't build a valid hand
         if (!(three && pair)) return null;
         return h;
+    }
+    
+    public int getTripRank()
+    {
+        return this.tripRank;
+    }
+    
+    public int getPairRank()
+    {
+        return this.pairRank;
+    }
+    
+    @Override
+    public int compareTo(FullHouse t) 
+    {
+        if (this.tripRank > t.getTripRank())
+        {
+            return 1;
+        }
+        else if (this.tripRank < t.getTripRank())
+        {
+            return -1;
+        }
+        else
+        {
+            if (this.pairRank > t.getPairRank())
+            {
+                return 1;
+            }
+            else if (this.pairRank < t.getPairRank())
+            {
+                return -1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
     }
 }

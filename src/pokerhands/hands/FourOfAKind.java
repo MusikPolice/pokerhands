@@ -1,6 +1,5 @@
 package pokerhands.hands;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import pokerhands.Card;
@@ -10,27 +9,31 @@ import pokerhands.Card;
  * Suit does not matter for this test.
  * @author jfritz
  */
-public class FourOfAKind extends Hand
+public class FourOfAKind extends Hand implements Comparable<FourOfAKind>
 {
+    int fourRank = 0;
+    
+    public FourOfAKind(Hand h)
+    {
+        this.cards = h.getCards();
+        h = this.getValidHand();
+        if (h != null)
+        {
+            this.cards = h.getCards();
+        }
+        else
+        {
+            this.cards = null;
+        }
+    }
+    
     @Override
     public Hand getValidHand()
     {
         if (cards.size() < 5) return null;
         
         //map each rank to the cards of that rank
-        HashMap<Integer, List<Card>> rankBuckets = new HashMap<>();
-        
-        //sort the cards into buckets based on rank
-        for (Card c : cards)
-        {
-            List<Card> rank = new ArrayList<>();
-            if (rankBuckets.containsKey(c.getRank()))
-            {
-                rank.addAll(rankBuckets.get(c.getRank()));
-            }
-            rank.add(c);
-            rankBuckets.put(c.getRank(), rank);
-        }
+        HashMap<Integer, List<Card>> rankBuckets = bucketCardsByRank(cards);
         
         Hand h = new Hand();
         boolean four = false;
@@ -44,6 +47,7 @@ public class FourOfAKind extends Hand
                 {
                     h.add(rankBuckets.get(1).remove(0));
                 }
+                if (fourRank == 0) fourRank = 1;
                 four = true;
             }
             if (rankBuckets.get(1).isEmpty()) rankBuckets.remove(1);
@@ -61,6 +65,7 @@ public class FourOfAKind extends Hand
                         h.add(rankBuckets.get(r).remove(0));
                     }
                     if (rankBuckets.get(r).isEmpty()) rankBuckets.remove(r);
+                    if (fourRank == 0) fourRank = r;
                     four = true;
                     break;
                 }
@@ -94,5 +99,57 @@ public class FourOfAKind extends Hand
         //return null if we couldn't build a valid hand
         if (h.getNumCards() != 5) return null;
         return h;
+    }
+    
+    public int getFourRank()
+    {
+        return this.fourRank;
+    }
+    
+    @Override
+    public int compareTo(FourOfAKind t) 
+    {
+        if (this.fourRank > t.getFourRank())
+        {
+            return 1;
+        }
+        else if (this.fourRank < t.getFourRank())
+        {
+            return -1;
+        }
+        else
+        {
+            int count1 = this.cards.size() - 1;
+            int count2 = t.getNumCards() - 1;
+            while (count1 >= 0 && count2 >= 0)
+            {
+                if (this.cards.get(count1).getRank() == this.fourRank)
+                {
+                    count1 -= 4;
+                }
+                if (t.get(count2).getRank() == t.getFourRank())
+                {
+                    count2 -= 4;
+                }
+                
+                if (count1 < 0 || count2 < 0) break;
+                
+                if (this.cards.get(count1).getRank() < t.get(count2).getRank())
+                {
+                    return -1;
+                }
+                else if (this.cards.get(count1).getRank() > t.get(count2).getRank())
+                {
+                    return 1;
+                }
+                else
+                {
+                    count1--;
+                    count2--;
+                }
+            }
+            
+            return 0;
+        }
     }
 }

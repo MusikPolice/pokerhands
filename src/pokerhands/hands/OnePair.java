@@ -1,6 +1,5 @@
 package pokerhands.hands;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import pokerhands.Card;
@@ -11,27 +10,32 @@ import pokerhands.Card;
  * pair of cards plus the remaining three highest cards of the set.
  * @author jfritz
  */
-public class OnePair extends Hand
+public class OnePair extends Hand implements Comparable<OnePair>
 {
+    //the rank of the highest set of pairs in this hand
+    private int pairRank;
+    
+    public OnePair(Hand h)
+    {
+        this.cards = h.getCards();
+        h = this.getValidHand();
+        if (h != null)
+        {
+            this.cards = h.getCards();
+        }
+        else
+        {
+            this.cards = null;
+        }
+    }
+    
     @Override
     public Hand getValidHand()
     {
         if (cards.size() < 5) return null;
         
         //map each rank to the cards of that rank
-        HashMap<Integer, List<Card>> rankBuckets = new HashMap<>();
-        
-        //sort the cards into buckets based on rank
-        for (Card c : cards)
-        {
-            List<Card> rank = new ArrayList<>();
-            if (rankBuckets.containsKey(c.getRank()))
-            {
-                rank.addAll(rankBuckets.get(c.getRank()));
-            }
-            rank.add(c);
-            rankBuckets.put(c.getRank(), rank);
-        }
+        HashMap<Integer, List<Card>> rankBuckets = bucketCardsByRank(cards);
         
         Hand h = new Hand();
         
@@ -42,6 +46,7 @@ public class OnePair extends Hand
             for (int i = 0; i < 2; i++)
             {
                 h.add(rankBuckets.get(1).remove(0));
+                if (pairRank == 0) pairRank = 1;
             }
             if (rankBuckets.get(1).isEmpty()) rankBuckets.remove(1);
         }
@@ -57,6 +62,7 @@ public class OnePair extends Hand
                     for (int i = 0; i < 2; i++)
                     {
                         h.add(rankBuckets.get(r).remove(0));
+                        if (pairRank == 0) pairRank = r;
                     }
                     if (rankBuckets.get(r).isEmpty()) rankBuckets.remove(r);
                     break;
@@ -91,5 +97,60 @@ public class OnePair extends Hand
         //return null if we couldn't build a valid hand
         if (h.getNumCards() != 5) return null;
         return h;
+    }
+    
+    /*
+     * Returns the rank of the pair
+     */
+    public int getPairRank()
+    {
+        return pairRank;
+    }
+
+    @Override
+    public int compareTo(OnePair t) 
+    {
+        if (this.pairRank < t.getPairRank())
+        {
+            return -1;
+        }
+        else if (this.pairRank > t.getPairRank())
+        {
+            return 1;
+        }
+        else
+        {
+            int count1 = this.cards.size() - 1;
+            int count2 = t.getNumCards() - 1;
+            while (count1 >= 0 && count2 >= 0)
+            {
+                if (this.cards.get(count1).getRank() == this.pairRank)
+                {
+                    count1 -= 2;
+                }
+                if (t.get(count2).getRank() == t.getPairRank())
+                {
+                    count2 -= 2;
+                }
+                
+                if (count1 < 0 || count2 < 0) break;
+                
+                if (this.cards.get(count1).getRank() < t.get(count2).getRank())
+                {
+                    return -1;
+                }
+                else if (this.cards.get(count1).getRank() > t.get(count2).getRank())
+                {
+                    return 1;
+                }
+                else
+                {
+                    count1--;
+                    count2--;
+                }
+            }
+            
+            return 0;
+        }
     }
 }

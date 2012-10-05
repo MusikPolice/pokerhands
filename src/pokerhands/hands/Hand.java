@@ -4,11 +4,11 @@ import java.util.*;
 import pokerhands.Card;
 
 /**
- *
+ * A collection of playing cards.
  * @author jfritz
  */
 public class Hand implements Iterable<Card>
-{
+{    
     protected List<Card> cards = null;
 
     public Hand()
@@ -61,18 +61,6 @@ public class Hand implements Iterable<Card>
     {
         cards.add(c);
         Collections.sort(cards);
-    }
-    
-    /**
-     * Adds the specified cards to the hand.
-     * @param cards 
-     */
-    public void addAll(List<Card> cards)
-    {
-        for (Card c : cards)
-        {
-            this.add(c);
-        }
     }
     
     /**
@@ -134,7 +122,8 @@ public class Hand implements Iterable<Card>
      */
     public boolean isValid()
     {
-        return getValidHand() != null;
+        if (this.cards == null || this.cards.size() < 5) return false;
+        return true;
     }
     
     /**
@@ -158,6 +147,15 @@ public class Hand implements Iterable<Card>
         {
             return null;
         }
+    }
+    
+    /**
+     * Returns the score for this type of hand.
+     * @return 
+     */
+    public int getScore()
+    {
+        return 0;
     }
     
     @Override
@@ -291,5 +289,32 @@ public class Hand implements Iterable<Card>
         }
         
         return straights;
+    }
+    
+    /**
+     * Sorts the provided list of cards into a dictionary structure that
+     * collects lists of cards with the same rank together.
+     * This dictionary allows us to examine the frequency of card ranks in the hand.
+     * @param cards the cards to sort into the dictionary
+     * @return a HashMap of rank=>list of cards with that rank
+     */
+    protected HashMap<Integer, List<Card>> bucketCardsByRank(List<Card> cards)
+    {
+        //map each rank to the cards of that rank
+        HashMap<Integer, List<Card>> rankBuckets = new HashMap<>();
+        
+        //sort the cards into buckets based on rank
+        for (Card c : cards)
+        {
+            List<Card> rank = new ArrayList<>();
+            if (rankBuckets.containsKey(c.getRank()))
+            {
+                rank.addAll(rankBuckets.get(c.getRank()));
+            }
+            rank.add(c);
+            rankBuckets.put(c.getRank(), rank);
+        }
+        
+        return rankBuckets;
     }
 }

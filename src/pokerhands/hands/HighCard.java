@@ -8,11 +8,28 @@ import pokerhands.Card;
  * with the largest rank. Suit does not matter.
  * @author jfritz
  */
-public class HighCard extends Hand
-{
+public class HighCard extends Hand implements Comparable<HighCard>
+{   
+    public HighCard(Hand h)
+    {
+        //choose the most appropriate set of five cards
+        this.cards = h.getCards();
+        h = this.getValidHand();
+        if (h != null)
+        {
+            this.cards = h.getCards();
+        }
+        else
+        {
+            this.cards = null;
+        }
+    }
+    
     @Override
     public Hand getValidHand() 
     {
+        if (this.cards == null) return null;
+        
         Hand h = new Hand();
         
         //aces are high, so start by adding all aces to the hand
@@ -44,5 +61,25 @@ public class HighCard extends Hand
         //return null if we don't have a five card hand
         if (h.getNumCards() != 5) return null;
         return h;
+    }
+    
+    @Override
+    public int compareTo(HighCard t) 
+    {
+        int index = this.getNumCards() - 1;
+        while (this.get(index).getRank() == t.get(index).getRank())
+        {
+            index--;
+            if (index < 0) return 0;
+        }
+        
+        if (this.get(index).getRank() < t.get(index).getRank())
+        {
+            return - 1;
+        }
+        else
+        {
+            return 1;
+        }
     }
 }
