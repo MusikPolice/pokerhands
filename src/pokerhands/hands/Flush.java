@@ -89,7 +89,31 @@ public class Flush extends Hand implements Comparable<Flush>
     @Override
     public int compareTo(Flush t) 
     {
-        int index = this.getNumCards() - 1;
+        //first handle aces because they're sorted to the bottom of the hand
+        int index = 0;
+        while (index < this.getNumCards())
+        {
+            if (this.get(index).getRank() == 1 && t.get(index).getRank() == 1)
+            {
+                index++;
+            }
+            else if (this.get(index).getRank() == 1 && t.get(index).getRank() != 1)
+            {
+                return 1;
+            }
+            else if (this.get(index).getRank() != 1 && t.get(index).getRank() == 1)
+            {
+                return -1;
+            }
+            else
+            {
+                //neither hand has an ace at index
+                break;
+            }
+        }
+        
+        //then continue on handling high cards
+        index = this.getNumCards() - 1;
         while (this.get(index).getRank() == t.get(index).getRank())
         {
             index--;

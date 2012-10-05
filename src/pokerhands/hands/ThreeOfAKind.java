@@ -111,11 +111,17 @@ public class ThreeOfAKind extends Hand implements Comparable<ThreeOfAKind>
     @Override
     public int compareTo(ThreeOfAKind t) 
     {
-        if (this.tripRank < t.getTripRank())
+        //special handling for aces
+        int myRank = this.tripRank;
+        int otherRank = t.getTripRank();
+        if (myRank == 1) myRank = 14;
+        if (otherRank == 1) otherRank = 14;
+        
+        if (myRank < otherRank)
         {
             return -1;
         }
-        else if (this.tripRank > t.getTripRank())
+        else if (myRank > otherRank)
         {
             return 1;
         }
@@ -135,12 +141,18 @@ public class ThreeOfAKind extends Hand implements Comparable<ThreeOfAKind>
                 }
                 
                 if (count1 < 0 || count2 < 0) break;
-                
-                if (this.cards.get(count1).getRank() < t.get(count2).getRank())
+        
+                //special handling for aces
+                myRank = this.cards.get(count1).getRank();
+                otherRank = t.get(count2).getRank();
+                if (myRank == 1) myRank = 14;
+                if (otherRank == 1) otherRank = 14;
+        
+                if (myRank < otherRank)
                 {
                     return -1;
                 }
-                else if (this.cards.get(count1).getRank() > t.get(count2).getRank())
+                else if (myRank > otherRank)
                 {
                     return 1;
                 }

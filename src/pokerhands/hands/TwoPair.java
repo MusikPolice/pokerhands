@@ -122,22 +122,35 @@ public class TwoPair extends Hand implements Comparable<TwoPair>
     @Override
     public int compareTo(TwoPair t) 
     {
+        //special handling for aces
+        int myRank = this.pairRankings.get(0);
+        int otherRank = t.getPairRankings().get(0);
+        if (myRank == 1) myRank = 14;
+        if (otherRank == 1) otherRank = 14;
+        
         //compare the first pair
-        if (this.pairRankings.get(0) < t.getPairRankings().get(0))
+        if (myRank < otherRank)
         {
             return -1;
         }
-        else if (this.pairRankings.get(0) > t.getPairRankings().get(0))
+        else if (myRank > otherRank)
         {
             return 1;
         }
         
+        
+        //special handling for aces
+        myRank = this.pairRankings.get(1);
+        otherRank = t.getPairRankings().get(1);
+        if (myRank == 1) myRank = 14;
+        if (otherRank == 1) otherRank = 14;
+        
         //if they're the same, compare the second
-        if (this.pairRankings.get(1) < t.getPairRankings().get(1))
+        if (myRank < otherRank)
         {
             return -1;
         }
-        else if (this.pairRankings.get(1) > t.getPairRankings().get(1))
+        else if (myRank > otherRank)
         {
             return 1;
         }
@@ -158,11 +171,17 @@ public class TwoPair extends Hand implements Comparable<TwoPair>
 
             if (count1 < 0 || count2 < 0) break;
 
-            if (this.cards.get(count1).getRank() < t.get(count2).getRank())
+            //special handling for aces
+            myRank = this.cards.get(count1).getRank();
+            otherRank = t.get(count2).getRank();
+            if (myRank == 1) myRank = 14;
+            if (otherRank == 1) otherRank = 14;
+        
+            if (myRank < otherRank)
             {
                 return -1;
             }
-            else if (this.cards.get(count1).getRank() > t.get(count2).getRank())
+            else if (myRank > otherRank)
             {
                 return 1;
             }

@@ -110,11 +110,17 @@ public class OnePair extends Hand implements Comparable<OnePair>
     @Override
     public int compareTo(OnePair t) 
     {
-        if (this.pairRank < t.getPairRank())
+        //special handling for aces
+        int myRank = this.pairRank;
+        int otherRank = t.getPairRank();
+        if (myRank == 1) myRank = 14;
+        if (otherRank == 1) otherRank = 14;
+        
+        if (myRank < otherRank)
         {
             return -1;
         }
-        else if (this.pairRank > t.getPairRank())
+        else if (myRank > otherRank)
         {
             return 1;
         }
@@ -134,12 +140,18 @@ public class OnePair extends Hand implements Comparable<OnePair>
                 }
                 
                 if (count1 < 0 || count2 < 0) break;
-                
-                if (this.cards.get(count1).getRank() < t.get(count2).getRank())
+        
+                //special handling for aces
+                myRank = this.cards.get(count1).getRank();
+                otherRank = t.get(count2).getRank();
+                if (myRank == 1) myRank = 14;
+                if (otherRank == 1) otherRank = 14;
+        
+                if (myRank < otherRank)
                 {
                     return -1;
                 }
-                else if (this.cards.get(count1).getRank() > t.get(count2).getRank())
+                else if (myRank > otherRank)
                 {
                     return 1;
                 }
